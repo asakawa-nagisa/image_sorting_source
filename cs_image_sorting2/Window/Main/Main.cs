@@ -13,35 +13,58 @@ namespace cs_image_sorting2
 {
     public partial class Main : Form
     {
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         public Main()
         {
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
-            fbd.Description = "フォルダを指定してください。";
-            fbd.RootFolder = Environment.SpecialFolder.Desktop;
-            fbd.SelectedPath = this.textBox1.Text;
-            fbd.ShowNewFolderButton = true;
-            if (fbd.ShowDialog(this) == DialogResult.OK)
-            {
-                //選択されたフォルダを表示する
-                this.textBox1.Text = fbd.SelectedPath;
-                SetImages(fbd.SelectedPath);
-            }
-        }
-
+        /// <summary>
+        /// フォームロード時のイベント（初期化として利用）
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Main_Load(object sender, EventArgs e)
         {
-            this.textBox1.Text = System.Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-            this.textBox2.Text = System.Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-            SetImages(this.textBox1.Text);
-            getSubDir(this.textBox2.Text);
+            // 全部品でMain_KeyDownを許可する。
             this.KeyPreview = true;
+            // 画像リスト読み込みディレクトリの初期値指定
+            this.textBox1.Text = System.Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+            // ディレクトリリスト読み込みの初期値指定
+            this.textBox2.Text = System.Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+            // 画像リスト読み込み
+            SetImages(this.textBox1.Text);
+            // ディレクトリリスト読み込み
+            getSubDir(this.textBox2.Text);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button1_Click(object sender, EventArgs e)
+        {
+            SetImageListDir();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button2_Click(object sender, EventArgs e)
+        {
+            SetDirectoryListDir();
+        }
+
+        /// <summary>
+        /// 画像リスト読み込み
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (Char)Keys.Enter)
@@ -51,6 +74,11 @@ namespace cs_image_sorting2
             }
         }
 
+        /// <summary>
+        /// ディレクトリリスト読み込み
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void textBox2_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (Char)Keys.Enter)
@@ -60,6 +88,11 @@ namespace cs_image_sorting2
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void listView1_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (this.listView1.SelectedItems.Count != 0)
@@ -68,43 +101,35 @@ namespace cs_image_sorting2
                 {
                     ListViewItem itemx = listView1.SelectedItems[0];
                     this.pictureBox1.Image = CreateImage(fileList[itemx.ImageIndex]);
-                    this.toolStripStatusLabel2.Text = String.Format("高さ:{0}", this.pictureBox1.Image.Height);
-                    this.toolStripStatusLabel3.Text = String.Format("幅:{0}", this.pictureBox1.Image.Width);
+                    this.toolTip1.SetToolTip(this.pictureBox1, String.Format("{0}×{1}", this.pictureBox1.Image.Width, this.pictureBox1.Image.Height));
                 }
-                catch
+                catch(Exception ex)
                 {
-                    SetImages(this.textBox1.Text);
+                    // エラー発生時画像表示領域の初期化
+                    this.pictureBox1.Image = null;
+                    Console.WriteLine(ex.ToString());
                 }
-            }
-        }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
-            fbd.Description = "フォルダを指定してください。";
-            fbd.RootFolder = Environment.SpecialFolder.Desktop;
-            fbd.SelectedPath =this.textBox2.Text;
-            fbd.ShowNewFolderButton = true;
-            if (fbd.ShowDialog(this) == DialogResult.OK)
-            {
-                //選択されたフォルダを表示する
-                this.textBox2.Text = fbd.SelectedPath;
-                getSubDir(this.textBox2.Text);
             }
         }
 
         private void listView1_ItemCheck(object sender, ItemCheckEventArgs e)
         {
-            this.toolStripStatusLabel4.Text = String.Format("選択画像数:{0}", this.listView1.SelectedItems.Count);
+            this.toolStripStatusLabel2.Text = String.Format("選択画像数:{0}", this.listView1.SelectedItems.Count);
         }
 
         private void listView1_ItemChecked(object sender, ItemCheckedEventArgs e)
         {
-            this.toolStripStatusLabel4.Text = String.Format("選択画像数:{0}", this.listView1.CheckedItems.Count);
+            this.toolStripStatusLabel2.Text = String.Format("選択画像数:{0}", this.listView1.CheckedItems.Count);
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
+            if (image_load_thread != null)
+            {
+                image_load_thread.Abort();
+                image_load_thread.Join();
+                image_load_thread = null;
+            }
             this.moveFiles();
             this.pictureBox1.Image = null;
         }
@@ -115,13 +140,15 @@ namespace cs_image_sorting2
             if (this.listView1.FocusedItem != null)
             {
                 index = this.listView1.FocusedItem.Index;
-                if (e.Button == MouseButtons.XButton1)
+                switch(e.Button)
                 {
-                    UpIndex(index);
-                }
-                else if (e.Button == MouseButtons.XButton2)
-                {
-                    DownIndex(index);
+                    case MouseButtons.XButton1:
+                        UpIndex(index);
+                        break;
+
+                    case MouseButtons.XButton2:
+                        DownIndex(index);
+                        break;
                 }
             }
         }
@@ -140,100 +167,9 @@ namespace cs_image_sorting2
 
         private void Main_FontChanged(object sender, EventArgs e)
         {
-            thread.Abort();
-            thread.Join();
-            Console.WriteLine("End");
-        }
-
-        private void Main_KeyDown(object sender, KeyEventArgs e)
-        {
-            int index = 0;
-            if (this.listView1.FocusedItem != null)
-            {
-                index = this.listView1.FocusedItem.Index;
-            }
-
-            if (e.Control && e.KeyCode == Keys.A)
-            {
-                if (this.listView1.Focused)
-                {
-                    foreach (ListViewItem itm in this.listView1.Items)
-                    {
-                        itm.Checked = true;
-                    }
-                }
-            }
-
-            if (e.Control && e.KeyCode == Keys.C)
-            {
-                if (this.listView1.Focused)
-                {
-                    foreach (ListViewItem itm in this.listView1.Items)
-                    {
-                        itm.Checked = false;
-                    }
-                }
-            }
-
-            switch (e.KeyCode)
-            {
-                case Keys.Enter:
-                    try
-                    {
-                        this.listView1.FocusedItem.Checked = !this.listView1.FocusedItem.Checked;
-                    }
-                    catch
-                    { }
-                    break;
-
-                case Keys.Down:
-                    if (thread == null)
-                    {
-                        UpIndex(index);
-                    }
-                    else
-                    {
-                        MessageBox.Show("読み込み中は実行できません。");
-                    }
-                    e.Handled = true;
-                    break;
-
-                case Keys.Right:
-                    if (thread == null)
-                    {
-                        UpIndex(index);
-                    }
-                    else
-                    {
-                        MessageBox.Show("読み込み中は実行できません。");
-                    }
-                    break;
-
-                case Keys.Up:
-                    if(thread == null)
-                    {
-                        DownIndex(index);
-                    }
-                    else
-                    {
-                        MessageBox.Show("読み込み中は実行できません。");
-                    }
-                    e.Handled = true;
-                    break;
-
-                case Keys.Left:
-                    if (thread == null)
-                    {
-                        DownIndex(index);
-                    }
-                    else
-                    {
-                        MessageBox.Show("読み込み中は実行できません。");
-                    }
-                    break;
-                default:
-                    break;
-            }
+            image_load_thread.Abort();
+            image_load_thread.Join();
+            // Console.WriteLine("End");
         }
 
         private void textBox2_Leave(object sender, EventArgs e)
@@ -270,6 +206,80 @@ namespace cs_image_sorting2
                 //選択されたフォルダを表示する
                 this.textBox1.Text = fbd.SelectedPath;
                 SetImages(fbd.SelectedPath);
+            }
+        }
+
+        private void Main_KeyDown(object sender, KeyEventArgs e)
+        {
+            int index = 0;
+            if (this.listView1.FocusedItem != null)
+            {
+                index = this.listView1.FocusedItem.Index;
+            }
+
+            switch (e.KeyCode)
+            {
+                case Keys.A:
+                    if(e.Control)
+                    {
+                        if (this.listView1.Focused)
+                        {
+                            foreach (ListViewItem itm in this.listView1.Items)
+                            {
+                                itm.Checked = true;
+                            }
+                        }
+                    }
+                    break;
+                case Keys.C:
+                    if (e.Control)
+                    {
+                        if (this.listView1.Focused)
+                        {
+                            foreach (ListViewItem itm in this.listView1.Items)
+                            {
+                                itm.Checked = false;
+                            }
+                        }
+                    }
+                    break;
+
+                case Keys.Enter:
+                    try
+                    {
+                        this.listView1.FocusedItem.Checked = !this.listView1.FocusedItem.Checked;
+                    }
+                    catch
+                    {
+                    }
+                    break;
+
+                case Keys.Down:
+                    if (this.listView1.Focused)
+                    {
+                        e.Handled = true;
+                    }
+                    this.UpIndex(index);
+                    break;
+
+                case Keys.Right:
+                    this.UpIndex(index);
+                    break;
+
+                case Keys.Up:
+                    if (this.listView1.Focused)
+                    {
+                        e.Handled = true;
+                    }
+                    this.DownIndex(index);
+                    break;
+
+                case Keys.Left:
+                    this.DownIndex(index);
+                    break;
+
+                default:
+                    break;
             }
         }
     }

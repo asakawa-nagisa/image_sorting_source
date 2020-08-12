@@ -26,7 +26,6 @@ namespace cs_image_sorting2
         {
             string[] patterns = { 
                 ".jpg",
-                ".JPG",
                 ".jpeg",
                 ".png",
                 ".gif",
@@ -46,14 +45,16 @@ namespace cs_image_sorting2
                     this.main.Set2(thumbnail, imgFiles, i);
                     original.Dispose();
                     thumbnail.Dispose();
-                    original = null;
-                    thumbnail = null;
                     this.main.NumberIncrement();
                     Thread.Sleep(100);
                 }
                 catch (Exception ex)
                 {
-                    if (ex is InvalidAsynchronousStateException || ex is ObjectDisposedException || ex is ThreadAbortException)
+                    if (
+                        ex is InvalidAsynchronousStateException || 
+                        ex is ObjectDisposedException || 
+                        ex is ThreadAbortException || 
+                        ex is NullReferenceException)
                     {
                         return;
                     }

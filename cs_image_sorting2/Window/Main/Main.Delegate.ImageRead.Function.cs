@@ -29,6 +29,8 @@ namespace cs_image_sorting2
             {
                 this.toolStripProgressBar1.Value = 0;
                 this.toolStripProgressBar1.Maximum = max_count;
+                this.toolStripProgressBar1.Visible = true;
+                this.toolStripStatusLabel1.Visible = true;
                 this.imageList1.Images.Clear();
                 this.listView1.Items.Clear();
                 fileList = new string[0];
@@ -63,7 +65,8 @@ namespace cs_image_sorting2
                 this.listView1.Items.Add("", i);
                 Array.Resize(ref fileList, fileList.Count() + 1);
                 fileList[fileList.Count() - 1] = imgFiles[i];
-                this.toolStripStatusLabel1.Text = String.Format("読み込み:{0}/{1}", this.listView1.Items.Count, imgFiles.Count());
+                this.toolStripStatusLabel1.Text = String.Format("いめ～じ読み込みちゆ～:");
+                this.toolStripStatusLabel4.Text = String.Format("フォルダ内総数:{0}", this.listView1.Items.Count);
             }
         }
 
@@ -76,7 +79,8 @@ namespace cs_image_sorting2
             }
             else
             {
-                this.toolStripStatusLabel1.Text = String.Format("フォルダ内総数:{0}", this.listView1.Items.Count);
+                this.toolStripProgressBar1.Visible = false;
+                this.toolStripStatusLabel1.Visible = false;
             }
         }
     }

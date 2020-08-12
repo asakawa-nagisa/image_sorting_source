@@ -46,9 +46,11 @@ namespace cs_image_sorting2
 
         private void Diff_Load(object sender, EventArgs e)
         {
+            this.pictureBox1.Image = null;
             this.pictureBox1.Image = CreateImage(this.A_path);
             this.label1.Text = String.Format("幅:{0}", this.pictureBox1.Image.Width);
             this.label2.Text = String.Format("高:{0}", this.pictureBox1.Image.Height);
+            this.pictureBox2.Image = null;
             this.pictureBox2.Image = CreateImage(this.B_path);
             this.label3.Text = String.Format("幅:{0}", this.pictureBox2.Image.Width);
             this.label4.Text = String.Format("高:{0}", this.pictureBox2.Image.Height);
@@ -71,6 +73,12 @@ namespace cs_image_sorting2
                 String.Format(@"{0}\{1}{2}", new_path, this.textBox1.Text, extension)
                 );
             this.Close();
+        }
+
+        private void Diff_FontChanged(object sender, EventArgs e)
+        {
+            this.pictureBox1.Image.Dispose();
+            this.pictureBox2.Image.Dispose();
         }
     }
 }

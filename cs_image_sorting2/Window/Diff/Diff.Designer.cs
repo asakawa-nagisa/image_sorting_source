@@ -259,6 +259,7 @@
             this.Name = "Diff";
             this.Text = "Diff";
             this.Load += new System.EventHandler(this.Diff_Load);
+            this.FontChanged += new System.EventHandler(this.Diff_FontChanged);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);

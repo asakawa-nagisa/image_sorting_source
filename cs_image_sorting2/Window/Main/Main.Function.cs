@@ -17,27 +17,40 @@ namespace cs_image_sorting2
         private int width = 100;
         private int height = 100;
         private string[] fileList = new string[0];
-        Thread thread = null;
+        Thread image_load_thread = null;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
         private void SetImages(string path)
         {
-            if (thread != null)
+            Console.WriteLine("Do Set Images.");
+            if (image_load_thread != null)
             {
-                thread.Abort();
-                thread.Join();
-                thread = null;
+                image_load_thread.Abort();
+                image_load_thread.Join();
+                image_load_thread = null;
             }
 
+            // 画像読み込みスレッドの開始
             ImageListGetThread ilgt = new ImageListGetThread(this, path);
-            thread = new Thread(new ThreadStart(ilgt.Worker));
-            thread.Start();
+            image_load_thread = new Thread(new ThreadStart(ilgt.Worker));
+            image_load_thread.Start();
         }
 
+        /// <summary>
+        /// ディレクトリリストの取得
+        /// </summary>
+        /// <param name="path"></param>
         private void getSubDir(string path)
         {
             System.IO.DirectoryInfo di = new System.IO.DirectoryInfo(path);
             System.IO.DirectoryInfo[] subFolders = di.GetDirectories("*");
 
+            this.toolStripProgressBar2.Value = 0;
+            this.toolStripProgressBar2.Maximum = subFolders.Count();
+            this.toolStripProgressBar2.Visible = true;
             this.comboBox1.Items.Clear();
             this.comboBox1.Items.Add("デフォルト");
             this.comboBox1.Text = "デフォルト";
@@ -46,8 +59,12 @@ namespace cs_image_sorting2
             {
                 this.comboBox1.Items.Add(subFolder.FullName.Replace(this.textBox2.Text,"").Replace("\\",""));
             }
+            this.toolStripProgressBar2.Visible = false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void moveFiles()
         {
             ListView.CheckedListViewItemCollection cc = listView1.CheckedItems;
@@ -69,9 +86,8 @@ namespace cs_image_sorting2
                 this.imageList1.Images.Clear();
                 this.listView1.Items.Clear();
 
-
-                while (this.imageList1.Images.Count!= 0) ;
-                while (this.listView1.Items.Count != 0) ;
+                while (this.imageList1.Images.Count != 0) Console.WriteLine("Wateing...");
+                while (this.listView1.Items.Count != 0) Console.WriteLine("Wateing...");
 
                 foreach (int index in list)
                 {
@@ -109,6 +125,11 @@ namespace cs_image_sorting2
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         private string[] removeList(int index)
         {
             var foos = new List<String>(fileList);
@@ -123,38 +144,41 @@ namespace cs_image_sorting2
         /// <returns>作成したSystem.Drawing.Image。</returns>
         public static System.Drawing.Image CreateImage(string filename)
         {
-            System.IO.FileStream fs = new System.IO.FileStream(
-                filename,
-                System.IO.FileMode.Open,
-                System.IO.FileAccess.Read);
-            System.Drawing.Image img = System.Drawing.Image.FromStream(fs);
-            fs.Close();
+            System.Drawing.Image img = null;
+            using (System.IO.FileStream fs = new System.IO.FileStream(filename, System.IO.FileMode.Open, System.IO.FileAccess.Read))
+            {
+                img = System.Drawing.Image.FromStream(fs);
+            }
             return img;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
         private void UpIndex(int index)
         {
-            index++;
-            if (index >= this.listView1.Items.Count)
-            {
-                index--;
-            }
+            
+            if (index < this.listView1.Items.Count)    index++;
             MoveIndex(index);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
         private void DownIndex(int index)
         {
-            index--;
-            if (index < 0)
-            {
-                index++;
-            }
+            if (index >= 0) index--;
             MoveIndex(index);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
         private void MoveIndex(int index)
         {
-            Console.WriteLine(index);
             if (listView1.Items.Count > 0)
             {
                 try
@@ -169,6 +193,52 @@ namespace cs_image_sorting2
                     SetImages(this.textBox1.Text);
                 }
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void SetImageListDir()
+        {
+            this.textBox1.Text = this.DirDialog(this.textBox1.Text);
+            if (this.textBox1.Text != string.Empty)
+            {
+                SetImages(this.textBox1.Text);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void SetDirectoryListDir()
+        {
+            this.textBox2.Text = this.DirDialog(this.textBox2.Text);
+            if (this.textBox2.Text != string.Empty)
+            {
+                getSubDir(this.textBox2.Text);
+            }
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        private string DirDialog(string path, string text = "フォルダを指定してください。")
+        {
+            string ret = string.Empty;
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            fbd.Description = text;
+            fbd.RootFolder = Environment.SpecialFolder.Desktop;
+            fbd.SelectedPath = path;
+            fbd.ShowNewFolderButton = true;
+            if (fbd.ShowDialog(this) == DialogResult.OK)
+            {
+                //選択されたフォルダを表示する
+                ret = fbd.SelectedPath;
+            }
+            return ret;
         }
     }
 }
