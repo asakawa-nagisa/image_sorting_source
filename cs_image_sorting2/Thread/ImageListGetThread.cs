@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.Threading;
+using System.Windows.Forms;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -14,8 +15,6 @@ namespace cs_image_sorting2
     {
         string path;
         Main main;
-        private int width = 100;
-        private int height = 100;
         public ImageListGetThread(Main main, string path)
         {
             this.path = path;
@@ -34,26 +33,35 @@ namespace cs_image_sorting2
             string[] files = Directory.GetFiles(path, "*.*");
             string[] imgFiles = files.Where(file => patterns.Any(pattern => file.ToLower().EndsWith(pattern))).ToArray();
 
-            this.main.Set1(imgFiles.Count());
-
-            for (int i = 0; i < imgFiles.Length; i++)
+            int max = imgFiles.Count();
+            if (imgFiles.Count() > Program.setting.load_num)
+            {
+                max = Program.setting.load_num;
+                System.Windows.Forms.MessageBox.Show(String.Format("{0}件以上は読み込めません。", Program.setting.load_num));
+            }
+            this.main.Set1(max, imgFiles.Count());
+            for (int i = 0; i < max; i++)
             {
                 try
                 {
                     Image original = Bitmap.FromFile(imgFiles[i]);
-                    Image thumbnail = createThumbnail(original, width, height);
-                    this.main.Set2(thumbnail, imgFiles, i);
+                    Image thumbnail = createThumbnail(original, Program.setting.size, Program.setting.size);
+                    bool do_next = this.main.Set2(thumbnail, imgFiles, i);
                     original.Dispose();
                     thumbnail.Dispose();
                     this.main.NumberIncrement();
-                    Thread.Sleep(100);
+                    if (!do_next)
+                    {
+                        MessageBox.Show("読み込み中にエラーが発生しました。このエラーは最大読み込み枚数を下げることで回避できる可能性があります。");
+                        break;
+                    }
                 }
                 catch (Exception ex)
                 {
                     if (
-                        ex is InvalidAsynchronousStateException || 
-                        ex is ObjectDisposedException || 
-                        ex is ThreadAbortException || 
+                        ex is InvalidAsynchronousStateException ||
+                        ex is ObjectDisposedException ||
+                        ex is ThreadAbortException ||
                         ex is NullReferenceException)
                     {
                         return;

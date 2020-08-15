@@ -9,10 +9,15 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
+using NagisaLibrary;
+
 namespace cs_image_sorting2
 {
     public partial class Main : Form
     {
+        private string text1;
+        private string text2;
+
         /// <summary>
         /// コンストラクタ
         /// </summary>
@@ -28,6 +33,12 @@ namespace cs_image_sorting2
         /// <param name="e"></param>
         private void Main_Load(object sender, EventArgs e)
         {
+            System.Reflection.AssemblyTitleAttribute asmttl = (System.Reflection.AssemblyTitleAttribute)Attribute.GetCustomAttribute(System.Reflection.Assembly.GetExecutingAssembly(), typeof(System.Reflection.AssemblyTitleAttribute));
+            System.Diagnostics.FileVersionInfo ver = System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            this.Text = String.Format("{0} [{1}]",
+                asmttl.Title, ver.FileVersion);
+            //フォームのアイコンを設定する
+            this.Icon = Properties.Resources.icon;
             // 全部品でMain_KeyDownを許可する。
             this.KeyPreview = true;
             // 画像リスト読み込みディレクトリの初期値指定
@@ -38,6 +49,9 @@ namespace cs_image_sorting2
             SetImages(this.textBox1.Text);
             // ディレクトリリスト読み込み
             getSubDir(this.textBox2.Text);
+            this.text1 = this.textBox1.Text;
+            this.text2 = this.textBox2.Text;
+            ReflectionSettings();
         }
 
         /// <summary>
@@ -107,21 +121,37 @@ namespace cs_image_sorting2
                 {
                     // エラー発生時画像表示領域の初期化
                     this.pictureBox1.Image = null;
+                    this.toolTip1.SetToolTip(this.pictureBox1, String.Format(""));
                     Console.WriteLine(ex.ToString());
                 }
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void listView1_ItemCheck(object sender, ItemCheckEventArgs e)
         {
-            this.toolStripStatusLabel2.Text = String.Format("選択画像数:{0}", this.listView1.SelectedItems.Count);
+            this.label3.Text = String.Format("選択画像数:{0}", this.listView1.SelectedItems.Count);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void listView1_ItemChecked(object sender, ItemCheckedEventArgs e)
         {
-            this.toolStripStatusLabel2.Text = String.Format("選択画像数:{0}", this.listView1.CheckedItems.Count);
+            this.label3.Text = String.Format("選択画像数:{0}", this.listView1.CheckedItems.Count);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void button3_Click(object sender, EventArgs e)
         {
             if (image_load_thread != null)
@@ -132,8 +162,14 @@ namespace cs_image_sorting2
             }
             this.moveFiles();
             this.pictureBox1.Image = null;
+            this.toolTip1.SetToolTip(this.pictureBox1, String.Format(""));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
             int index = 0;
@@ -153,6 +189,11 @@ namespace cs_image_sorting2
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void 新規フォルダ作成ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MkSubForlder msf = new MkSubForlder(this.textBox2.Text);
@@ -160,11 +201,21 @@ namespace cs_image_sorting2
             getSubDir(this.textBox2.Text);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void pictureBox1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             this.listView1.FocusedItem.Checked = !this.listView1.FocusedItem.Checked;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Main_FontChanged(object sender, EventArgs e)
         {
             image_load_thread.Abort();
@@ -172,12 +223,22 @@ namespace cs_image_sorting2
             // Console.WriteLine("End");
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void textBox2_Leave(object sender, EventArgs e)
         {
             //サブディレクトリの取得
             getSubDir(this.textBox2.Text);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void 全選択ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             foreach (ListViewItem itm in this.listView1.Items)
@@ -186,6 +247,11 @@ namespace cs_image_sorting2
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void 全選択解除ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             foreach (ListViewItem itm in this.listView1.Items)
@@ -194,6 +260,11 @@ namespace cs_image_sorting2
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void 移動ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
@@ -209,6 +280,11 @@ namespace cs_image_sorting2
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Main_KeyDown(object sender, KeyEventArgs e)
         {
             int index = 0;
@@ -220,26 +296,20 @@ namespace cs_image_sorting2
             switch (e.KeyCode)
             {
                 case Keys.A:
-                    if(e.Control)
+                    if((e.Control) && (this.listView1.Focused) && (image_load_thread == null))
                     {
-                        if (this.listView1.Focused)
+                        foreach (ListViewItem itm in this.listView1.Items)
                         {
-                            foreach (ListViewItem itm in this.listView1.Items)
-                            {
-                                itm.Checked = true;
-                            }
+                            itm.Checked = true;
                         }
                     }
                     break;
                 case Keys.C:
-                    if (e.Control)
+                    if((e.Control) && (this.listView1.Focused) && (image_load_thread == null))
                     {
-                        if (this.listView1.Focused)
+                        foreach (ListViewItem itm in this.listView1.Items)
                         {
-                            foreach (ListViewItem itm in this.listView1.Items)
-                            {
-                                itm.Checked = false;
-                            }
+                            itm.Checked = false;
                         }
                     }
                     break;
@@ -281,6 +351,53 @@ namespace cs_image_sorting2
                 default:
                     break;
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            if (this.textBox1.Text == string.Empty)
+            {
+                this.textBox1.Text = this.text1;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void 設定ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            bool beforpreview = Program.setting.preview;
+            int beforsize = Program.setting.size;
+
+            SettingWindow setting = new SettingWindow();
+            setting.ShowDialog(this);
+            if (beforpreview != Program.setting.preview)
+            {
+                this.pictureBox1.Visible = Program.setting.preview;
+                this.splitter1.Visible = Program.setting.preview;
+            }
+            if (beforsize != Program.setting.size)
+            {
+                SetImages(this.textBox1.Text);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if ((image_move_thread != null) && (!image_move_thread.IsAlive)) image_move_thread = null;
+            if ((image_load_thread != null) && (!image_load_thread.IsAlive)) image_load_thread = null;
         }
     }
 }

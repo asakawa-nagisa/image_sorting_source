@@ -14,10 +14,16 @@ namespace cs_image_sorting2
 {
     public partial class Main
     {
-        private int width = 100;
-        private int height = 100;
         private string[] fileList = new string[0];
         Thread image_load_thread = null;
+        Thread image_move_thread = null;
+
+        private void ReflectionSettings()
+        {
+            this.pictureBox1.Visible = Program.setting.preview;
+            this.splitter1.Visible = Program.setting.preview;
+            SetImages(this.textBox1.Text);
+        }
 
         /// <summary>
         /// 
@@ -69,57 +75,47 @@ namespace cs_image_sorting2
         {
             ListView.CheckedListViewItemCollection cc = listView1.CheckedItems;
             int[] list = new int[0];
-            foreach (ListViewItem itemx in cc)
+            string base_path = this.textBox2.Text;
+
+            // ベースパスの変更
+            if (this.comboBox1.SelectedIndex != 0)
             {
-                Array.Resize(ref list, list.Count() + 1);
-                list[list.Count() - 1] = itemx.ImageIndex;
+                base_path = String.Format(@"{0}\{1}", this.textBox2.Text, this.comboBox1.Text);
             }
 
-            Array.Reverse(list);
-
-            if ((list.Count() > 0) &&(this.textBox1.Text != this.textBox2.Text || this.comboBox1.Text != "デフォルト"))
+            if ((this.textBox1.Text != base_path))
             {
-                foreach (ListViewItem itm in this.listView1.Items)
+                // ターゲットリストの取得
+                foreach (ListViewItem itemx in cc)
                 {
-                    itm.Checked = false;
+                    Array.Resize(ref list, list.Count() + 1);
+                    list[list.Count() - 1] = itemx.ImageIndex;
                 }
-                this.imageList1.Images.Clear();
-                this.listView1.Items.Clear();
+                Array.Reverse(list);
 
-                while (this.imageList1.Images.Count != 0) Console.WriteLine("Wateing...");
-                while (this.listView1.Items.Count != 0) Console.WriteLine("Wateing...");
-
-                foreach (int index in list)
+                if (list.Count() > 0)
                 {
-                    string fileName = fileList[index].Replace(this.textBox1.Text, "").Replace("\\", "");
-                    string moveAfterPath = String.Empty;
-                    if (this.comboBox1.SelectedIndex == 0)
+                    this.imageList1.Images.Clear();
+                    this.listView1.Items.Clear();
+
+                    while (this.imageList1.Images.Count != 0) Console.WriteLine("Wateing...");
+                    while (this.listView1.Items.Count != 0) Console.WriteLine("Wateing...");
+
+                    Console.WriteLine("Do Move Images.");
+                    if (image_move_thread != null)
                     {
-                        moveAfterPath = String.Format(@"{0}\{1}", this.textBox2.Text, fileName);
+                        image_move_thread.Abort();
+                        image_move_thread.Join();
+                        image_move_thread = null;
                     }
-                    else
-                    {
-                        moveAfterPath = String.Format(@"{0}\{1}\{2}", this.textBox2.Text, this.comboBox1.Text, fileName);
-                    }
-                    try
-                    {
-                        System.IO.File.Move(fileList[index], moveAfterPath);
-                    }
-                    catch(IOException ioec)
-                    {
-                        Console.WriteLine(ioec.ToString());
-                        if (ioec.ToString().IndexOf("既に存在するファイルを作成することはできません。") >= 0)
-                        {
-                            Diff diff = new Diff(fileList[index], moveAfterPath);
-                            diff.StartPosition = FormStartPosition.CenterScreen;
-                            diff.ShowDialog(this);
-                        }
-                    }
-                    fileList = removeList(index);
+
+                    // 画像読み込みスレッドの開始
+                    ImageMoveThread imt = new ImageMoveThread(this, this.textBox1.Text,base_path,list,fileList);
+                    image_move_thread = new Thread(new ThreadStart(imt.Worker));
+                    image_move_thread.Start();
                 }
-                this.SetImages(this.textBox1.Text);
             }
-            else if ((this.textBox1.Text == this.textBox2.Text && this.comboBox1.Text == "デフォルト"))
+            else if (this.textBox1.Text == base_path)
             {
                 MessageBox.Show("同一ディレクトリへの転送はできません");
             }

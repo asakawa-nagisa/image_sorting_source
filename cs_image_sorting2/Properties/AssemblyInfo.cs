@@ -5,13 +5,13 @@ using System.Runtime.InteropServices;
 // アセンブリに関する一般情報は以下の属性セットをとおして制御されます。
 // アセンブリに関連付けられている情報を変更するには、
 // これらの属性値を変更してください。
-[assembly: AssemblyTitle("cs_image_sorting2")]
+[assembly: AssemblyTitle("いめ～じそ～た～")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("cs_image_sorting2")]
-[assembly: AssemblyCopyright("Copyright ©  2020")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCompany("研究箱ソフトウェア")]
+[assembly: AssemblyProduct("いめ～じそ～た～")]
+[assembly: AssemblyCopyright("研究箱ソフトウェア ©  2020")]
+[assembly: AssemblyTrademark("いめ～じそ～た～")]
 [assembly: AssemblyCulture("")]
 
 // ComVisible を false に設定すると、その型はこのアセンブリ内で COM コンポーネントから 

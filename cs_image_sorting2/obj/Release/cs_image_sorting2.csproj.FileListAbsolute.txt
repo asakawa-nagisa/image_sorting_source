@@ -9,3 +9,6 @@ F:\Documents\開発\GUI\cs_image_sorting2\cs_image_sorting2\obj\Release\cs_image
 F:\Documents\開発\GUI\cs_image_sorting2\cs_image_sorting2\obj\Release\cs_image_sorting2.csproj.GenerateResource.Cache
 F:\Documents\開発\GUI\cs_image_sorting2\cs_image_sorting2\obj\Release\cs_image_sorting2.exe
 F:\Documents\開発\GUI\cs_image_sorting2\cs_image_sorting2\obj\Release\cs_image_sorting2.pdb
+F:\Documents\開発\GUI\cs_image_sorting2\cs_image_sorting2\obj\Release\cs_image_sorting2.SettingWindow.resources
+F:\Documents\開発\GUI\cs_image_sorting2\cs_image_sorting2\bin\Release\NagisaLibrary.dll
+F:\Documents\開発\GUI\cs_image_sorting2\cs_image_sorting2\bin\Release\NagisaLibrary.pdb
